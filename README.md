@@ -7,7 +7,7 @@ The XML-files are self-contained.
 ## Getting started
 
 ```commandline
-conda create -f environment.yaml
+conda env create -f environment.yaml
 ```
 
 ## How to use
