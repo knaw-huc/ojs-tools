@@ -12,7 +12,14 @@ conda create -f environment.yaml
 
 ## How to use
 
+Before the first call
 ```commandline
+conda activate ojs-xml-generator
+```
+
+Typical call
+```commandline
+
 python main.py --csv_file /path/to/data.csv --files_path /path/to/documents --output_path /path/to/output/folder 
 ```
 `csv_file` should be in the structure created by `ojs-csv-processor`.
