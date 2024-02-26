@@ -39,9 +39,6 @@ def fix_unicode(value: str):
         for unicode_char in unicode_chars:
             value = value.replace(unicode_char, chr(int(unicode_char.strip("&#;"))))
 
-        named_unicode_chars = ["&eacute;", "&ecirc;", "&egrave;", "&euml;", "&euro;", "&iuml;"]
-        # named_unicode_chars = re.findall("&[a-z]+", value)
-
         value = value.replace("&eacute;", "é")
         value = value.replace("&ecirc;", "ê")
         value = value.replace("&egrave;", "è")
