@@ -1,4 +1,6 @@
 import argparse
+import traceback
+
 import numpy as np
 import pandas
 from pandas import DataFrame, Series
@@ -52,7 +54,6 @@ def create_publication(article_data: Series, section_ref: str) -> Publication:
     publication.section_ref = section_ref
     publication.status = 3
     publication.date_published = XmlDate.today()
-    publication.primary_contact_id = author_id
     publication.title.append(article_data["titel"])
     publication.abstract.append(article_data["abstract"])
 
@@ -92,6 +93,7 @@ def add_authors(article_data: Series, publication: Publication):
         authors.author.append(author)
     if len(authors.author) > 0:
         publication.authors = authors
+        publication.primary_contact_id = authors.author[0].id
 
 
 def create_articles(issue_data: DataFrame, section_ref: str, files_folder: str) -> Articles:
@@ -110,9 +112,9 @@ def create_articles(issue_data: DataFrame, section_ref: str, files_folder: str) 
 
 def add_identification(issue_data: DataFrame, issue: Issue):
     identification = IssueIdentification()
-    identification.year = issue_data["jaar"].iloc[0]
-    identification.volume = issue_data["jaargang"].iloc[0]
-    identification.number = issue_data["nummer"].iloc[0]
+    identification.year = int(issue_data["jaar"].iloc[0])
+    identification.volume = int(issue_data["jaargang"].iloc[0])
+    identification.number = int(issue_data["nummer"].iloc[0])
     identification.title = "Tijdschrift voor Hoger Onderwijs"
     issue.issue_identification = identification
 
@@ -142,8 +144,8 @@ if __name__ == "__main__":
         try:
             issue_data = data[data["editie"].isin([issue_identifier])]
 
-            year = issue_data["jaar"].iloc[0].strip()
-            number = issue_data["nummer"].iloc[0].strip()
+            year = issue_data["jaar"].iloc[0]
+            number = issue_data["nummer"].iloc[0]
             file_name = f"{year}_{number}.xml"
             print(issue_data["id"].iloc[0], ": ", file_name)
 
@@ -160,6 +162,7 @@ if __name__ == "__main__":
 
             issue.articles = create_articles(issue_data, articles_section.ref, args.files_path)
             issue.published = 1
+            issue.current = 1
 
             xml_string = xml_serializer.render(issue, ns_map={None: "http://pkp.sfu.ca"})
             etree = ET.fromstring(xml_string)
@@ -171,4 +174,5 @@ if __name__ == "__main__":
 
         except Exception as ex:
             print(ex)
+            traceback.print_exc()
         print("----------------------------------------------------")
