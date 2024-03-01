@@ -57,6 +57,7 @@ def create_publication(article_data: Series, section_ref: str) -> Publication:
     publication.date_published = XmlDate.today()
     publication.title.append(article_data["titel"])
     publication.abstract.append(article_data["abstract"])
+    publication.pages = article_data["pagina"]
 
     add_authors(article_data, publication)
 
