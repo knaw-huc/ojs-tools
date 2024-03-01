@@ -97,10 +97,11 @@ def split_author_names(name_string: str):
         surname = author_names[1]
     else:
         prefixes = ["van", "de", "den", "der", "ten", "ter"]
+        normalized_names = [name.casefold() for name in author_names]
         lowest_prefix_index = 1000
         for prefix in prefixes:
-            if prefix in author_names and author_names.index(prefix) < lowest_prefix_index:
-                lowest_prefix_index = author_names.index(prefix)
+            if prefix.casefold() in normalized_names  and normalized_names.index(prefix) < lowest_prefix_index:
+                lowest_prefix_index = normalized_names.index(prefix)
 
         start_of_surname = lowest_prefix_index if lowest_prefix_index < len(author_names) else -1
         first_name = " ".join(author_names[0:start_of_surname])
