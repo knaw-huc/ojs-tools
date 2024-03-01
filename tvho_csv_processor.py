@@ -89,7 +89,7 @@ def process_authors(data: DataFrame):
 def split_author_names(name_string: str):
     first_name = ""
     surname = ""
-    author_names = name_string.split(" ")
+    author_names = name_string.strip(" ").split(" ")
     if len(author_names) == 1:
         first_name = author_names[0]
     elif len(author_names) == 2:
