@@ -18,6 +18,7 @@ def create_submission_file(file_name: str, file_id: int, files_folder: str) -> S
     submission_file = SubmissionFile()
     submission_file.stage = SubmissionFileStage.SUBMISSION
     submission_file.file_id = file_id
+    submission_file.id_attribute = file_id
     submission_file.name = file_name
     submission_file.created_at = XmlDate.today()
     submission_file.genre = "Article Text"
