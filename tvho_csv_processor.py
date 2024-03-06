@@ -1,35 +1,28 @@
 import argparse
+import re
+from datetime import date
 
 import pandas
-import re
-
 from pandas import DataFrame
 
 
-def process_editie(editie_string: str):
-    count_dash = editie_string.count(" - ")
-    split_editie = editie_string.split(" - ")
-    jaargang = split_editie[0].split(" ")[1]
+def process_publication(publication_string: str):
+    count_dash = publication_string.count(" - ")
+    split_publication = publication_string.split(" - ")
+    volume = split_publication[0].split(" ")[1]
     if count_dash == 2:
-        jaar = split_editie[1]
-        nummer = split_editie[2]
+        year = split_publication[1]
+        issue = split_publication[2]
     elif count_dash == 1:
-        jaar_nummer = split_editie[1].split("/")
-        jaar = jaar_nummer[0]
-        nummer = jaar_nummer[1]
+        year_issue = split_publication[1].split("/")
+        year = year_issue[0]
+        issue = year_issue[1]
 
-    return jaargang, jaar, nummer
+    return volume, year, issue
 
 
-def process_page_number(referentie_string: str):
-    # if isinstance(referentie_string, str)
-    #     page_range = referentie_string.split(", ")[-1].strip(".").split("-")
-    #     from_page = page_range[0]
-    #     to_page = page_range[-1]
-    #     return from_page, to_page
-    # else:
-    #     return "", ""
-    return referentie_string.split(", ")[-1].strip(".") if isinstance(referentie_string, str) else ""
+def process_page_number(reference_string: str):
+    return reference_string.split(", ")[-1].strip(".") if isinstance(reference_string, str) else ""
 
 
 def fix_unicode(value: str):
@@ -60,15 +53,16 @@ def split_authors(authors_string: str):
 
 
 def process_authors(data: DataFrame):
-    global index
     authors_columns = {}
     authors_lists = data["auteurs"].map(lambda authors: split_authors(authors)).tolist()
     ordered_authors_lists = authors_lists.copy()
     ordered_authors_lists.sort(key=len, reverse=True)
     max_authors = len(ordered_authors_lists[0])
+    given_name = "author_given_name_"
+    family_name = "author_family_name_"
     for i in range(max_authors):
-        authors_columns["auteur_voornaam_" + str(i)] = []
-        authors_columns["auteur_achternaam_" + str(i)] = []
+        authors_columns[given_name + str(i)] = []
+        authors_columns[family_name + str(i)] = []
     for row in authors_lists:
         for index in range(max_authors):
             first_name = ""
@@ -76,14 +70,14 @@ def process_authors(data: DataFrame):
             if index < len(row):
                 first_name, surname = split_author_names(row[index])
 
-            authors_columns["auteur_voornaam_" + str(index)].append(first_name)
-            authors_columns["auteur_achternaam_" + str(index)].append(surname)
+            authors_columns[given_name + str(index)].append(first_name)
+            authors_columns[family_name + str(index)].append(surname)
 
     for i in range(max_authors):
-        column_firstname = "auteur_voornaam_" + str(i)
-        data[column_firstname] = authors_columns[column_firstname]
-        column_surname = "auteur_achternaam_" + str(i)
-        data[column_surname] = authors_columns[column_surname]
+        column_given_name = given_name + str(i)
+        data[column_given_name] = authors_columns[column_given_name]
+        column_family_name = family_name + str(i)
+        data[column_family_name] = authors_columns[column_family_name]
 
 
 def split_author_names(name_string: str):
@@ -100,14 +94,35 @@ def split_author_names(name_string: str):
         normalized_names = [name.casefold() for name in author_names]
         lowest_prefix_index = 1000
         for prefix in prefixes:
-            if prefix.casefold() in normalized_names  and normalized_names.index(prefix) < lowest_prefix_index:
+            if prefix.casefold() in normalized_names and normalized_names.index(prefix) < lowest_prefix_index:
                 lowest_prefix_index = normalized_names.index(prefix)
 
-        start_of_surname = lowest_prefix_index if lowest_prefix_index < len(author_names) else -1
+        start_of_surname = -1
+        if lowest_prefix_index < len(author_names):
+            start_of_surname = lowest_prefix_index
+
+        if author_names[start_of_surname - 1] == "-":
+            start_of_surname = start_of_surname - 2
+        elif "-" in author_names[start_of_surname - 1]:
+            start_of_surname = start_of_surname - 1
+
         first_name = " ".join(author_names[0:start_of_surname])
         surname = " ".join(author_names[start_of_surname:])
 
     return first_name, surname
+
+
+months = {"mrt": 3, "jun": 6, "sep": 9, "dec": 12}
+
+
+def process_publication_date(date_string:str):
+    global months
+    date_split = date_string.split("-")
+    month = months[date_split[1]]
+    year_two_digit = int(date_split[2])
+    year = year_two_digit + 2000 if year_two_digit < 88 else year_two_digit + 1900
+
+    return str(date(year, month, int(date_split[0])))
 
 
 if __name__ == '__main__':
@@ -122,11 +137,16 @@ if __name__ == '__main__':
     csv["auteurs"] = csv["auteurs"].map(lambda auteurs: fix_unicode(auteurs))
     csv["abstract"] = csv["abstract"].map(lambda abstract: fix_unicode(abstract))
 
-    csv["jaargang"], csv["jaar"], csv["nummer"] = zip(*csv["editie"].map(lambda editie: process_editie(editie)))
-    csv["pagina"] = csv["referentie"].map(lambda referentie: process_page_number(referentie))
-    # csv["van_pagina"], csv["tot_pagina"] = zip(*csv["referentie"].map(lambda referentie: process_page_number(referentie)))
+    csv["volume"], csv["year"], csv["issue"] = zip(*csv["editie"].map(lambda editie: process_publication(editie)))
+    csv["page_number"] = csv["referentie"].map(lambda referentie: process_page_number(referentie))
+    csv["Datum"] = csv["Datum"].map(lambda datum: process_publication_date(datum))
     process_authors(csv)
 
-    csv = csv.drop(["referentie", "auteurs"], axis=1)
+    csv = csv[csv["Status"] != "Hoeft niet"]
+    csv = csv.sort_values(["year", "issue", "sorteer", "page_number"])
+
+    csv = csv.drop(["referentie", "auteurs", "Status", "sorteer"], axis=1)
+    csv = csv.rename(columns={"titel": "title", "editie": "publication", "document": "file", "sorteer": "order",
+                              "Datum": "publication_date"})
 
     csv.to_csv(args.output_csv, sep=";", index=False)
