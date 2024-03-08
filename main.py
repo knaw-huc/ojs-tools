@@ -1,5 +1,6 @@
 import argparse
 import traceback
+from typing import List
 
 import numpy as np
 import pandas
@@ -11,16 +12,17 @@ from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.models.datatype import XmlDate
 
 from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article, ArticleStage, SubmissionFile, \
-    SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id
+    SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id, LocalizedNode, \
+    IssueGalley, IssueGalleys, Title
 
 
-def create_submission_file(file_name: str, file_id: int, files_folder: str) -> SubmissionFile:
+def create_submission_file(file_name: str, file_id: int, files_folder: str, publication_date: str) -> SubmissionFile:
     submission_file = SubmissionFile()
     submission_file.stage = SubmissionFileStage.SUBMISSION
     submission_file.file_id = file_id
     submission_file.id_attribute = file_id
-    submission_file.name = file_name
-    submission_file.created_at = XmlDate.today()
+    add_localized_node(submission_file.name, "en", file_name)
+    submission_file.created_at = XmlDate.from_string(publication_date)
     submission_file.genre = "Article Text"
 
     with open(rf"{files_folder}/{file_name}", mode="rb") as file:
@@ -54,15 +56,19 @@ def create_publication(article_data: Series, section_ref: str) -> Publication:
     publication.id.append(publication_id)
     publication.section_ref = section_ref
     publication.status = 3
-    publication.date_published = XmlDate.today()
-    publication.title.append(article_data["titel"])
-    publication.abstract.append(article_data["abstract"])
-    publication.pages = article_data["pagina"]
+    publication.date_published = XmlDate.from_string(article_data["publication_date"])
+    title = Title()
+    title.content.append(article_data["title"])
+    title.locale = "en"
+    publication.title.append(title)
+    add_localized_node(publication.abstract, "en", article_data["abstract"])
+    publication.pages = article_data["page_number"]
 
     add_authors(article_data, publication)
 
     galley = ArticleGalley()
-    galley.name = article_data["document"]
+    galley.name = article_data["file"]
+    galley.locale = "en"
     galley.seq = 0
     ref = SubmissionFileRef()
     ref.id = article_data["id"]
@@ -75,16 +81,16 @@ def create_publication(article_data: Series, section_ref: str) -> Publication:
 def add_authors(article_data: Series, publication: Publication):
     global author_id
     authors = Authors()
-    for seq, key in enumerate(filter(lambda key: key.startswith("auteur_voornaam"), article_data.keys())):
+    for seq, key in enumerate(filter(lambda key: key.startswith("author_given_name"), article_data.keys())):
         given_name = article_data[key]
 
         if given_name is np.nan:
             break
 
-        family_name = article_data[key.replace("voornaam", "achternaam")]
+        family_name = article_data[key.replace("given_name", "family_name")]
         author = Author()
-        author.givenname = given_name
-        author.familyname = family_name
+        add_localized_node(author.givenname, "en", given_name)
+        add_localized_node(author.familyname, "en", family_name)
         author.country = ""  # needed for a valid xml
         author.email = ""  # needed for a valid xml
         author.seq = seq
@@ -102,23 +108,33 @@ def create_articles(issue_data: DataFrame, section_ref: str, files_folder: str) 
     articles = Articles()
     for index, article_data in issue_data.iterrows():
         article = Article()
+        article.locale = "en"
         article.stage = ArticleStage.PRODUCTION
         article.current_publication_id = article_data["id"]
         article.status = "3"
-        article.submission_file = create_submission_file(article_data["document"], article_data.get("id"), files_folder)
+        article.submission_file = create_submission_file(
+            article_data["file"], article_data.get("id"), files_folder, article_data["publication_date"]
+        )
         article.publication = create_publication(article_data, section_ref)
         articles.article.append(article)
 
     return articles
 
 
-def add_identification(issue_data: DataFrame, issue: Issue):
+def add_identification(issue_data: DataFrame, issue: Issue, journal_name: str):
     identification = IssueIdentification()
-    identification.year = int(issue_data["jaar"].iloc[0])
-    identification.volume = int(issue_data["jaargang"].iloc[0])
-    identification.number = int(issue_data["nummer"].iloc[0])
-    identification.title = "Tijdschrift voor Hoger Onderwijs"
+    identification.year = int(issue_data["year"].iloc[0])
+    identification.volume = int(issue_data["volume"].iloc[0])
+    identification.number = int(issue_data["issue"].iloc[0])
+    identification.title = journal_name
     issue.issue_identification = identification
+
+
+def add_localized_node(localized_nodes: List[LocalizedNode], locale: str, content: str):
+    node = LocalizedNode()
+    node.content.append(content)
+    node.locale = locale
+    localized_nodes.append(node)
 
 
 if __name__ == "__main__":
@@ -126,13 +142,13 @@ if __name__ == "__main__":
     parser.add_argument("--csv_file", type=str, required=True)
     parser.add_argument("--files_path", type=str, required=True)
     parser.add_argument("--output_path", type=str, required=True)
+    parser.add_argument("--journal_name", type=str, required=True)
 
     args = parser.parse_args()
 
     data = pandas.read_csv(args.csv_file, delimiter=";")
-    data = data.sort_values(by=["jaar", "nummer", "sorteer", "pagina"])
 
-    issues = data["editie"].unique()
+    publiations = data["publication"].unique()
 
     config = SerializerConfig(
         indent="  ",
@@ -142,29 +158,33 @@ if __name__ == "__main__":
     )
     xml_serializer = XmlSerializer(config=config)
     xml_schema = XMLSchema("./xsd/native.xsd")
-    for issue_identifier in issues:
+    for issue_identifier in publiations:
         try:
-            issue_data = data[data["editie"].isin([issue_identifier])]
+            publication_data = data[data["publication"].isin([issue_identifier])]
 
-            year = issue_data["jaar"].iloc[0]
-            number = issue_data["nummer"].iloc[0]
-            file_name = f"{year}_{number}.xml"
-            print(issue_data["id"].iloc[0], ": ", file_name)
+            year = publication_data["year"].iloc[0]
+            issue_number = publication_data["issue"].iloc[0]
+            file_name = f"{year}_{issue_number}.xml"
+            print(publication_data["id"].iloc[0], ": ", file_name)
 
             issue = Issue()
-            add_identification(issue_data, issue)
+            add_identification(publication_data, issue, args.journal_name)
+            galleys = IssueGalleys()
+            issue.issue_galleys = galleys
 
             sections = Sections()
             articles_section = Section()
             articles_section.ref = "ART"
-            articles_section.title = "Articles"
+            add_localized_node(articles_section.title, "en", "Articles")
             articles_section.seq = 0
-            articles_section.policy = "Section default policy"
+            add_localized_node(articles_section.policy, "en", "Section default policy")
+            articles_section.abstract_word_count = 250
             sections.section.append(articles_section)
 
-            issue.articles = create_articles(issue_data, articles_section.ref, args.files_path)
+            issue.articles = create_articles(publication_data, articles_section.ref, args.files_path)
             issue.published = 1
-            issue.current = 1
+            issue.current = 0
+            issue.date_published = XmlDate.from_string(publication_data["publication_date"].iloc[0])
 
             xml_string = xml_serializer.render(issue, ns_map={None: "http://pkp.sfu.ca"})
             etree = ET.fromstring(xml_string)
