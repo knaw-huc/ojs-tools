@@ -1,11 +1,11 @@
 import argparse
 import traceback
+import xml.etree.ElementTree as ET
 from typing import List
 
 import numpy as np
 import pandas
-from pandas import DataFrame, Series
-import xml.etree.ElementTree as ET
+from pandas import DataFrame, Series, isna
 from xmlschema import XMLSchema
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
@@ -13,7 +13,7 @@ from xsdata.models.datatype import XmlDate
 
 from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article, ArticleStage, SubmissionFile, \
     SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id, LocalizedNode, \
-    IssueGalley, IssueGalleys, Title
+    IssueGalleys, Title
 
 
 def create_submission_file(file_name: str, file_id: int, files_folder: str, publication_date: str) -> SubmissionFile:
@@ -132,6 +132,8 @@ def add_identification(issue_data: DataFrame, issue: Issue, journal_name: str):
 
 def add_localized_node(localized_nodes: List[LocalizedNode], locale: str, content: str):
     node = LocalizedNode()
+    if isna(content):
+        content = ""
     node.content.append(content)
     node.locale = locale
     localized_nodes.append(node)
