@@ -178,8 +178,10 @@ if __name__ == "__main__":
             add_localized_node(articles_section.title, "en", "Articles")
             articles_section.seq = 0
             add_localized_node(articles_section.policy, "en", "Section default policy")
+            add_localized_node(articles_section.abbrev, "en", "ART")
             articles_section.abstract_word_count = 250
             sections.section.append(articles_section)
+            issue.sections = sections
 
             issue.articles = create_articles(publication_data, articles_section.ref, args.files_path)
             issue.published = 1
