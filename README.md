@@ -26,3 +26,11 @@ python main.py --csv_file /path/to/data.csv --files_path /path/to/documents --ou
 `files_path`, a folder that should contain all the files mentioned in the `csv_file`-file.
 `output_path` should point an existing folder.
 This is where the XMLs are stored.
+Optional parameters
+`author_group` the user the group the authors of the articles are part of.
+This property has a default value `Author`.
+This default value is the english variant each language has its own.
+The dutch variant is `Auteur`.
+`submission_file_genre` is used for the `genre`-field of the `submission_file`-element
+The default value is `Article Text`, the english variant.
+The dutch variant is `Artikeltekst`.
