@@ -1,4 +1,5 @@
 import argparse
+import os.path
 import re
 from datetime import date
 
@@ -129,7 +130,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_csv", type=str, required=True)
     parser.add_argument("--output_csv", type=str, required=True)
+    parser.add_argument("--files_path", help="folder that contains the files mentioned in the input_csv",
+                        type=str, required=True)
     args = parser.parse_args()
+    files_path = args.files_path
 
     csv = pandas.read_csv(args.input_csv, delimiter=";", header=0)
 
@@ -140,6 +144,10 @@ if __name__ == '__main__':
     csv["volume"], csv["year"], csv["issue"] = zip(*csv["editie"].map(lambda editie: process_publication(editie)))
     csv["page_number"] = csv["referentie"].map(lambda referentie: process_page_number(referentie))
     csv["Datum"] = csv["Datum"].map(lambda datum: process_publication_date(datum))
+    csv["document"] = csv["document"].map(lambda document: os.path.join(files_path, document))
+    csv = csv.assign(section_title=["Artikelen"] * len(csv))
+    csv = csv.assign(section_policy=["Standaard"] * len(csv))
+    csv = csv.assign(section_reference=["ART"] * len(csv))
     process_authors(csv)
 
     csv = csv[csv["Status"] != "Hoeft niet"]
