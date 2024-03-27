@@ -1,4 +1,5 @@
 import argparse
+import os.path
 import traceback
 import xml.etree.ElementTree as ET
 from typing import List
@@ -17,20 +18,21 @@ from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article
 
 
 class SubmissionFileCreator:
-    def __init__(self, genre):
+    def __init__(self, genre: str, locale: str):
+        self.locale = locale
         self.genre = genre
 
-    def create_submission_file(self, file_name: str, file_id: int, files_folder: str,
+    def create_submission_file(self, file_path: str, file_id: int,
                                publication_date: str) -> SubmissionFile:
         submission_file = SubmissionFile()
-        submission_file.stage = SubmissionFileStage.SUBMISSION
+        submission_file.stage = SubmissionFileStage.PROOF
         submission_file.file_id = file_id
         submission_file.id_attribute = file_id
-        add_localized_node(submission_file.name, "en", file_name)
+        add_localized_node(submission_file.name, self.locale, os.path.basename(file_path))
         submission_file.created_at = XmlDate.from_string(publication_date)
         submission_file.genre = self.genre
 
-        with open(rf"{files_folder}/{file_name}", mode="rb") as file:
+        with open(rf"{file_path}", mode="rb") as file:
             file_bytes = file.read()
             file_size = len(file_bytes)
 
@@ -41,8 +43,8 @@ class SubmissionFileCreator:
             embed.encoding = "base64"
             embed.content = file_bytes
             file_holder.embed = embed
-            if "." in file_name:
-                file_holder.extension = file_name.split(".")[-1]
+            if "." in file_path:
+                file_holder.extension = file_path.split(".")[-1]
 
             submission_file.file = file_holder
 
@@ -50,7 +52,8 @@ class SubmissionFileCreator:
 
 
 class AuthorAdder:
-    def __init__(self, user_group_ref: str):
+    def __init__(self, user_group_ref: str, locale: str):
+        self.locale = locale
         self.user_group_ref = user_group_ref
         self.author_id: int = 1
 
@@ -64,8 +67,8 @@ class AuthorAdder:
 
             family_name = article_data[key.replace("given_name", "family_name")]
             author = Author()
-            add_localized_node(author.givenname, "en", given_name)
-            add_localized_node(author.familyname, "en", family_name)
+            add_localized_node(author.givenname, self.locale, given_name)
+            add_localized_node(author.familyname, self.locale, family_name)
             author.country = ""  # needed for a valid xml
             author.email = ""  # needed for a valid xml
             author.seq = seq
@@ -80,7 +83,8 @@ class AuthorAdder:
 
 
 class PublicationCreator:
-    def __init__(self, author_adder: AuthorAdder):
+    def __init__(self, author_adder: AuthorAdder, locale: str):
+        self.locale = locale
         self.author_adder = author_adder
 
     def create_publication(self, article_data: Series, section_ref: str) -> Publication:
@@ -94,16 +98,16 @@ class PublicationCreator:
         publication.date_published = XmlDate.from_string(article_data["publication_date"])
         title = Title()
         title.content.append(article_data["title"])
-        title.locale = "en"
+        title.locale = self.locale
         publication.title.append(title)
-        add_localized_node(publication.abstract, "en", article_data["abstract"])
+        add_localized_node(publication.abstract, self.locale, article_data["abstract"])
         publication.pages = article_data["page_number"]
 
         self.author_adder.add_authors(article_data, publication)
 
         galley = ArticleGalley()
-        galley.name = article_data["file"]
-        galley.locale = "en"
+        galley.name = os.path.basename(article_data["file"])
+        galley.locale = self.locale
         galley.seq = 0
         ref = SubmissionFileRef()
         ref.id = article_data["id"]
@@ -113,17 +117,17 @@ class PublicationCreator:
         return publication
 
 
-def create_articles(issue_data: DataFrame, section_ref: str, files_folder: str, publication_creator: PublicationCreator,
-                    submission_file_creator: SubmissionFileCreator) -> Articles:
+def create_articles(issue_data: DataFrame, section_ref: str, publication_creator: PublicationCreator,
+                    submission_file_creator: SubmissionFileCreator, locale: str) -> Articles:
     articles = Articles()
     for index, article_data in issue_data.iterrows():
         article = Article()
-        article.locale = "en"
+        article.locale = locale
         article.stage = ArticleStage.PRODUCTION
         article.current_publication_id = article_data["id"]
         article.status = "3"
         article.submission_file = submission_file_creator.create_submission_file(
-            article_data["file"], article_data.get("id"), files_folder, article_data["publication_date"]
+            article_data["file"], article_data.get("id"), article_data["publication_date"]
         )
         article.publication = publication_creator.create_publication(article_data, section_ref)
         articles.article.append(article)
@@ -152,17 +156,18 @@ def add_localized_node(localized_nodes: List[LocalizedNode], locale: str, conten
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv_file", type=str, required=True)
-    parser.add_argument("--files_path", type=str, required=True)
     parser.add_argument("--output_path", type=str, required=True)
     parser.add_argument("--journal_name", type=str, required=True)
     parser.add_argument("--author_group", type=str, default="Author")
     parser.add_argument("--submission_file_genre", type=str, default="Article Text")
+    parser.add_argument("--locale", type=str, default="en")
 
     args = parser.parse_args()
 
-    author_adder = AuthorAdder(args.author_group)
-    publication_creator = PublicationCreator(author_adder)
-    submission_file_creator = SubmissionFileCreator(args.submission_file_genre)
+    locale = args.locale
+    author_adder = AuthorAdder(args.author_group, locale)
+    publication_creator = PublicationCreator(author_adder, locale)
+    submission_file_creator = SubmissionFileCreator(args.submission_file_genre, locale)
 
     data = pandas.read_csv(args.csv_file, delimiter=";")
 
@@ -193,16 +198,16 @@ if __name__ == "__main__":
             sections = Sections()
             articles_section = Section()
             articles_section.ref = "ART"
-            add_localized_node(articles_section.title, "en", "Articles")
+            add_localized_node(articles_section.title, locale, "Artikelen")
             articles_section.seq = 0
-            add_localized_node(articles_section.policy, "en", "Section default policy")
-            add_localized_node(articles_section.abbrev, "en", "ART")
+            add_localized_node(articles_section.policy, locale, "Standaard")
+            add_localized_node(articles_section.abbrev, locale, "ART")
             articles_section.abstract_word_count = 250
             sections.section.append(articles_section)
             issue.sections = sections
 
-            issue.articles = create_articles(publication_data, articles_section.ref, args.files_path,
-                                             publication_creator, submission_file_creator)
+            issue.articles = create_articles(publication_data, articles_section.ref, publication_creator,
+                                             submission_file_creator, locale)
             issue.published = 1
             issue.current = 0
             issue.date_published = XmlDate.from_string(publication_data["publication_date"].iloc[0])
