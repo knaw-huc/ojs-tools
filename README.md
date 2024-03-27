@@ -33,8 +33,7 @@ python tvho_csv_processor.py --input_csv /path/to/input.csv --output_csv /path/t
 
 OJS XML Generator
 ```commandline
-python main.py --csv_file /path/to/data.csv --output_path /path/to/output/folder 
-```
+c```
 `csv_file` should be in the structure created by `ojs-csv-processor`.
 `output_path` should point an existing folder.
 This is where the XMLs are stored.
