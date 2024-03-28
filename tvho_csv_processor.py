@@ -23,7 +23,12 @@ def process_publication(publication_string: str):
 
 
 def process_page_number(reference_string: str):
-    return reference_string.split(", ")[-1].strip(".") if isinstance(reference_string, str) else ""
+    if not isinstance(reference_string, str):
+        return ""
+    elif "," in reference_string:
+        return reference_string.split(", ")[-1].strip(".")
+    else:
+        return reference_string.split(" ")[-1]
 
 
 def fix_unicode(value: str):
