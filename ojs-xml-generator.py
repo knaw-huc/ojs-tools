@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     data = pandas.read_csv(args.csv_file, delimiter=";")
 
-    publiations = data["publication"].unique()
+    publications = data["publication"].unique()
 
     config = SerializerConfig(
         indent="  ",
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     )
     xml_serializer = XmlSerializer(config=config)
     xml_schema = XMLSchema("./xsd/native.xsd")
-    for issue_identifier in publiations:
+    for issue_identifier in publications:
         try:
             publication_data = data[data["publication"].isin([issue_identifier])]
 
