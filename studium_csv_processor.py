@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 
 import pandas
 import requests
+from bs4 import BeautifulSoup
 from pandas import DataFrame
 
 from output_csv_validator import validate_csv
@@ -111,19 +112,19 @@ def add_publication(csv: DataFrame):
     csv["publication"] = publications
 
 
-class PublicationDateParser(HTMLParser):
-
-    def handle_starttag(self, tag, attrs):
-        attributes = dict(attrs)
-        if tag == "meta" and "name" in attributes.keys() and attributes["name"] == "citation_publication_date":
-            self.publication_date = attributes["content"].split("T")[0]
-
-
-def find_publication_date(link: str):
+def process_web_page_data(link: str):
     page = requests.get(link)
-    date_parser = PublicationDateParser()
-    date_parser.feed(page.text)
-    return date_parser.publication_date
+    soup = BeautifulSoup(page.text, "html.parser")
+
+    abstract_text = ""
+    possible_abstracts = soup.find_all("div", {"class": "authors"})
+    for abstract in possible_abstracts:
+        if "Abstract" in abstract.text:
+            abstract_text = abstract.text.replace("Abstract", "").strip()
+
+    publication_date = soup.find("meta", {"name": "citation_publication_date"})
+
+    return publication_date.attrs["content"], abstract_text
 
 
 if __name__ == "__main__":
@@ -145,12 +146,12 @@ if __name__ == "__main__":
     csv = csv.assign(section_policy=["Standaard"] * len(csv))
     csv = csv.assign(section_reference=["ART"] * len(csv))
     add_publication(csv)
-    csv["publication_date"] = csv["link"].map(lambda link: find_publication_date(link))
+    csv["publication_date"], csv["abstract"] = zip(*csv["link"].map(lambda link: process_web_page_data(link)))
 
     csv = csv[["id"] + [col for col in csv.columns if col != "id"]]
-    csv = csv.rename(columns={"jaar": "year", "pages": "page_number", "titel": "title", "keywords": "abstract"})
+    csv = csv.rename(columns={"jaar": "year", "pages": "page_number", "titel": "title"})
     csv = csv.sort_values(["year", "issue", "doi"])
-    csv = csv.drop(["doi", "link", "pdf", "xml", "authors"], axis=1)
+    csv = csv.drop(["doi", "link", "pdf", "xml", "authors", "keywords"], axis=1)
 
     validate_csv(csv)
 
