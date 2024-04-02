@@ -139,7 +139,7 @@ def add_identification(issue_data: DataFrame, issue: Issue, journal_name: str):
     identification = IssueIdentification()
     identification.year = int(issue_data["year"].iloc[0])
     identification.volume = int(issue_data["volume"].iloc[0])
-    identification.number = int(issue_data["issue"].iloc[0])
+    identification.number = issue_data["issue"].iloc[0]
     identification.title = journal_name
     issue.issue_identification = identification
 
