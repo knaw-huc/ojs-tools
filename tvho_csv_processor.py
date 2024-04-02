@@ -17,7 +17,10 @@ def process_publication(publication_string: str):
     elif count_dash == 1:
         year_issue = split_publication[1].split("/")
         year = year_issue[0]
-        issue = year_issue[1]
+        if len(year_issue) == 3:
+            issue = year_issue[1] + "/" + year_issue[2]
+        else:
+            issue = year_issue[1]
 
     return volume, year, issue
 

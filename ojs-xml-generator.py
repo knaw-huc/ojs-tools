@@ -3,6 +3,7 @@ import os.path
 import traceback
 import xml.etree.ElementTree as ET
 from typing import List
+import re
 
 import numpy as np
 import pandas
@@ -18,8 +19,8 @@ from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article
 
 
 class SubmissionFileCreator:
-    def __init__(self, genre: str, locale: str):
-        self.locale = locale
+    def __init__(self, genre: str, default_locale: str):
+        self.default_locale = default_locale
         self.genre = genre
 
     def create_submission_file(self, file_path: str, file_id: int,
@@ -28,7 +29,7 @@ class SubmissionFileCreator:
         submission_file.stage = SubmissionFileStage.PROOF
         submission_file.file_id = file_id
         submission_file.id_attribute = file_id
-        add_localized_node(submission_file.name, self.locale, os.path.basename(file_path))
+        add_localized_node(submission_file.name, self.default_locale, os.path.basename(file_path))
         submission_file.created_at = XmlDate.from_string(publication_date)
         submission_file.genre = self.genre
 
@@ -52,13 +53,19 @@ class SubmissionFileCreator:
 
 
 class AuthorAdder:
-    def __init__(self, user_group_ref: str, locale: str):
-        self.locale = locale
+    def __init__(self, user_group_ref: str, default_locale: str):
+        self.default_locale = default_locale
         self.user_group_ref = user_group_ref
         self.author_id: int = 1
 
     def add_authors(self, article_data: Series, publication: Publication):
         authors = Authors()
+
+        if "locale" in article_data.keys():
+            locale = article_data["locale"]
+        else:
+            locale = self.default_locale
+
         for seq, key in enumerate(filter(lambda key: key.startswith("author_given_name"), article_data.keys())):
             given_name = article_data[key]
 
@@ -67,8 +74,8 @@ class AuthorAdder:
 
             family_name = article_data[key.replace("given_name", "family_name")]
             author = Author()
-            add_localized_node(author.givenname, self.locale, given_name)
-            add_localized_node(author.familyname, self.locale, family_name)
+            add_localized_node(author.givenname, locale, given_name)
+            add_localized_node(author.familyname, locale, family_name)
             author.country = ""  # needed for a valid xml
             author.email = ""  # needed for a valid xml
             author.seq = seq
@@ -83,8 +90,8 @@ class AuthorAdder:
 
 
 class PublicationCreator:
-    def __init__(self, author_adder: AuthorAdder, locale: str):
-        self.locale = locale
+    def __init__(self, author_adder: AuthorAdder, default_locale: str):
+        self.default_locale = default_locale
         self.author_adder = author_adder
 
     def create_publication(self, article_data: Series, section_ref: str) -> Publication:
@@ -98,16 +105,21 @@ class PublicationCreator:
         publication.date_published = XmlDate.from_string(article_data["publication_date"])
         title = Title()
         title.content.append(article_data["title"])
-        title.locale = self.locale
+        if "locale" in article_data.keys():
+            locale = article_data["locale"]
+        else:
+            locale = self.default_locale
+
+        title.locale = locale
         publication.title.append(title)
-        add_localized_node(publication.abstract, self.locale, article_data["abstract"])
+        add_localized_node(publication.abstract, locale, article_data["abstract"])
         publication.pages = article_data["page_number"]
 
         self.author_adder.add_authors(article_data, publication)
 
         galley = ArticleGalley()
         galley.name = os.path.basename(article_data["file"])
-        galley.locale = self.locale
+        galley.locale = self.default_locale
         galley.seq = 0
         ref = SubmissionFileRef()
         ref.id = article_data["id"]
@@ -118,10 +130,14 @@ class PublicationCreator:
 
 
 def create_articles(issue_data: DataFrame, section_ref: str, publication_creator: PublicationCreator,
-                    submission_file_creator: SubmissionFileCreator, locale: str) -> Articles:
+                    submission_file_creator: SubmissionFileCreator, default_locale: str) -> Articles:
     articles = Articles()
     for index, article_data in issue_data.iterrows():
         article = Article()
+        if "locale" in article_data:
+            locale = article_data["locale"]
+        else:
+            locale = default_locale
         article.locale = locale
         article.stage = ArticleStage.PRODUCTION
         article.current_publication_id = article_data["id"]
@@ -186,7 +202,7 @@ if __name__ == "__main__":
             publication_data = data[data["publication"].isin([issue_identifier])]
 
             year = publication_data["year"].iloc[0]
-            issue_number = publication_data["issue"].iloc[0]
+            issue_number = publication_data["issue"].iloc[0].replace("/", "_")
             file_name = f"{year}_{issue_number}.xml"
             print(publication_data["id"].iloc[0], ": ", file_name)
 
