@@ -1,7 +1,6 @@
 import argparse
 import os
 import re
-from html.parser import HTMLParser
 
 import pandas
 import requests
@@ -127,6 +126,16 @@ def process_web_page_data(link: str):
     return publication_date.attrs["content"], abstract_text
 
 
+def language_to_locale(language):
+    if language == "dut" or language == "nld" or language == "nl; en":
+        return "nl"
+
+    if language == "fr":
+        return "fr_FR"
+
+    return language
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_csv", type=str, required=True)
@@ -147,6 +156,7 @@ if __name__ == "__main__":
     csv = csv.assign(section_reference=["ART"] * len(csv))
     add_publication(csv)
     csv["publication_date"], csv["abstract"] = zip(*csv["link"].map(lambda link: process_web_page_data(link)))
+    csv["locale"] = csv["language"].map(lambda language: language_to_locale(language))
 
     csv = csv[["id"] + [col for col in csv.columns if col != "id"]]
     csv = csv.rename(columns={"jaar": "year", "pages": "page_number", "titel": "title"})
