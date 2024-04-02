@@ -28,7 +28,7 @@ def validate_csv(csv: DataFrame):
 
     files = csv["file"]
     for file in files:
-        if os.path.exists(file):
+        if not os.path.exists(file):
             print(f"cannot find '{file}'")
 
 
