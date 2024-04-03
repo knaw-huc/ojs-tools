@@ -1,38 +1,37 @@
 # OJS tools
 
-## The tools
-
-### TVHO CSV processor
-
-Is a custom csv processor for the tvho project.
-It will create input for `ojs-xml-generator`.
-
-### OJS XML Generator
-
-Creates XML-files for the OJS `NativeImportExportPlugin`.
-The XML-files are self-contained.
+This project contains multiple tools that help generate OJS native xml files.
 
 ## Getting started
 
+### Create the conda environment
 ```commandline
 conda env create -f environment.yaml
 ```
 
-## How to use
-
-#### Before the first call
+### Activate the conda environment
 ```commandline
 conda activate ojs-tools
 ```
 
+## TVHO CSV processor
+
+Is a custom csv processor for the tvho project.
+It will create input for `ojs-xml-generator`.
+
 ### Typical calls
-TVHO CSV processor
 ```commandline
 python tvho_csv_processor.py --input_csv /path/to/input.csv --output_csv /path/to/output.csv --files_path /path/to/documents
 ```
 * `files_path`, a folder that should contain all the files mentioned in the `csv_file`-file.
 
-OJS XML Generator
+
+## OJS XML Generator
+
+Creates XML-files for the OJS `NativeImportExportPlugin`.
+The XML-files are self-contained.
+
+### Typical call
 ```commandline
 python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder 
 ```
@@ -47,3 +46,5 @@ The Dutch variant is `Auteur`.
 * `submission_file_genre` is used for the `genre`-field of the `submission_file`-element
 The default value is `Article Text`, the English variant.
 The Dutch variant is `Artikeltekst`.
+* `locale` the locale used when importing, default value is 'en'.
+Make sure the `locale`, `author_group` and `submission_file_genre` are the same language.
