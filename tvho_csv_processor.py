@@ -6,6 +6,8 @@ from datetime import date
 import pandas
 from pandas import DataFrame
 
+from output_csv_validator import validate_csv
+
 
 def process_publication(publication_string: str):
     count_dash = publication_string.count(" - ")
@@ -22,7 +24,7 @@ def process_publication(publication_string: str):
         else:
             issue = year_issue[1]
 
-    return volume, year, issue
+    return int(volume), int(year), issue
 
 
 def process_page_number(reference_string: str):
@@ -164,5 +166,7 @@ if __name__ == '__main__':
     csv = csv.drop(["referentie", "auteurs", "Status", "sorteer"], axis=1)
     csv = csv.rename(columns={"titel": "title", "editie": "publication", "document": "file", "sorteer": "order",
                               "Datum": "publication_date"})
+
+    validate_csv(csv)
 
     csv.to_csv(args.output_csv, sep=";", index=False)
