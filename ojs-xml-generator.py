@@ -61,11 +61,6 @@ class AuthorAdder:
     def add_authors(self, article_data: Series, publication: Publication):
         authors = Authors()
 
-        if "locale" in article_data.keys():
-            locale = article_data["locale"]
-        else:
-            locale = self.default_locale
-
         for seq, key in enumerate(filter(lambda key: key.startswith("author_given_name"), article_data.keys())):
             given_name = article_data[key]
 
@@ -105,10 +100,6 @@ class PublicationCreator:
         publication.date_published = XmlDate.from_string(article_data["publication_date"])
         title = Title()
         title.content.append(article_data["title"])
-        if "locale" in article_data.keys():
-            locale = article_data["locale"]
-        else:
-            locale = self.default_locale
 
         title.locale = locale
         publication.title.append(title)
@@ -134,11 +125,7 @@ def create_articles(issue_data: DataFrame, section_ref: str, publication_creator
     articles = Articles()
     for index, article_data in issue_data.iterrows():
         article = Article()
-        if "locale" in article_data:
-            locale = article_data["locale"]
-        else:
-            locale = default_locale
-        article.locale = locale
+        article.locale = default_locale
         article.stage = ArticleStage.PRODUCTION
         article.current_publication_id = article_data["id"]
         article.status = "3"
