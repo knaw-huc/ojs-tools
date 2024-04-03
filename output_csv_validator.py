@@ -97,7 +97,115 @@ columns = [
         "required": True,
         "nullable": True,
         "type": str
-    }
+    },
+    {
+        "name": "author_given_name_1",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_1",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_2",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_2",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_3",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_3",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_4",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_4",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_5",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_5",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_6",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_6",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_7",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_7",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_8",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_8",
+        "required": True,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_given_name_9",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
+    {
+        "name": "author_family_name_0",
+        "required": False,
+        "nullable": True,
+        "type": str
+    },
 ]
 
 
