@@ -190,7 +190,7 @@ columns = [
     },
     {
         "name": "author_family_name_8",
-        "required": True,
+        "required": False,
         "nullable": True,
         "type": str
     },
@@ -225,18 +225,19 @@ def validate_csv(csv: DataFrame):
     for index, row in csv.iterrows():
         index = index + 2
         for column in columns:
-            column_name = column["name"]
-            if not column["nullable"]:
-                value = row[column_name]
-                column_type = column["type"]
-                if value is np.nan:
-                    print(f"Row with index {index} has empty value for non-empty column {column_name}.")
-                elif column_type == date:
-                    if not (isinstance(value, str) or re.match(dmy_date_pattern, value) or not re.match(iso_date_pattern, value)):
-                        print(f"'{value}' is not a valid date string for {column_name} for row with index {index}")
-                elif not isinstance(value, column_type):
-                    print(f"Expected {column_type} for column {column_name} but found {type(value)} for row with "
-                          f"index {index}")
+            if column["name"] not in missing_columns:
+                column_name = column["name"]
+                if not column["nullable"]:
+                    value = row[column_name]
+                    column_type = column["type"]
+                    if value is np.nan:
+                        print(f"Row with index {index} has empty value for non-empty column {column_name}.")
+                    elif column_type == date:
+                        if not (isinstance(value, str) or re.match(dmy_date_pattern, value) or not re.match(iso_date_pattern, value)):
+                            print(f"'{value}' is not a valid date string for {column_name} for row with index {index}")
+                    elif not isinstance(value, column_type):
+                        print(f"Expected {column_type} for column {column_name} but found {type(value)} for row with "
+                              f"index {index}")
 
     files = csv["file"]
     for file in files:
