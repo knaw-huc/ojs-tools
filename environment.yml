@@ -9,7 +9,7 @@ dependencies:
   - ca-certificates
   - certifi
   - charset-normalizer==3.3.2=pyhd8ed1ab_0
-`  - click-default-group==1.2.4=pyhd8ed1ab_0
+  - click-default-group==1.2.4=pyhd8ed1ab_0
   - click==8.1.7=unix_pyh707e725_0
   - docformatter==1.7.5=pyhd8ed1ab_0
   - elementpath==4.3.0=pyhd8ed1ab_0
