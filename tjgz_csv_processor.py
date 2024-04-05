@@ -37,13 +37,21 @@ def process_file(metadata_file: str, metadata_file_parent: str, document_parent:
 
     row["title"] = metadata.find(".//title-group/article-title").text
     row["file"] = os.path.join(document_parent, metadata_file.replace("_nlm.xml.Meta", ".pdf"))
-    row["year"] = int(metadata.find(".//copyright-year").text)
+    # row["year"] = int(metadata_file.split("_")[1])
+    year_element = metadata.find(".//pub-date[@publication-format='print']/year")
+    month_element = metadata.find(".//pub-date[@publication-format='print']/month")
+
+    if year_element is None:
+        year_element = metadata.find(".//pub-date[@date-type='ppub']/year")
+        month_element = metadata.find(".//pub-date[@date-type='ppub']/month")
+
+    row["year"] = int(year_element.text)
     row["volume"] = int(metadata.find(".//volume").text)
     row["issue"] = metadata.find(".//issue").text
     row["publication"] = f"{row['year']} / {row['issue']}"
-    year = int(metadata.find(".//history/date[@date-type='online']/year").text)
-    month = int(metadata.find(".//history/date[@date-type='online']/month").text)
-    day = int(metadata.find(".//history/date[@date-type='online']/day").text)
+    year = int(year_element.text)
+    month = int(month_element.text)
+    day = 1
     date = datetime.date(year, month, day)
     row["publication_date"] = date.strftime("%Y-%m-%d")
     fpage = metadata.find(".//fpage").text
@@ -83,7 +91,7 @@ if __name__ == "__main__":
 
     xml_path = args.metadata_path
     files_path = args.files_path
-    
+
     data = DataFrame()
     data.insert(0, "title", np.nan)
     data.insert(len(data.columns), "abstract", np.nan)
