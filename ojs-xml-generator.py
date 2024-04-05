@@ -120,24 +120,6 @@ class PublicationCreator:
         return publication
 
 
-def create_articles(issue_data: DataFrame, section_ref: str, publication_creator: PublicationCreator,
-                    submission_file_creator: SubmissionFileCreator, default_locale: str) -> Articles:
-    articles = Articles()
-    for index, article_data in issue_data.iterrows():
-        article = Article()
-        article.locale = default_locale
-        article.stage = ArticleStage.PRODUCTION
-        article.current_publication_id = article_data["id"]
-        article.status = "3"
-        article.submission_file = submission_file_creator.create_submission_file(
-            article_data["file"], article_data.get("id"), article_data["publication_date"]
-        )
-        article.publication = publication_creator.create_publication(article_data, section_ref)
-        articles.article.append(article)
-
-    return articles
-
-
 def add_identification(issue_data: DataFrame, issue: Issue, journal_name: str):
     identification = IssueIdentification()
     identification.year = int(issue_data["year"].iloc[0])
@@ -154,6 +136,39 @@ def add_localized_node(localized_nodes: List[LocalizedNode], locale: str, conten
     node.content.append(content)
     node.locale = locale
     localized_nodes.append(node)
+
+
+def add_articles(issue: Issue, issue_data: DataFrame, publication_creator: PublicationCreator,
+                 submission_file_creator: SubmissionFileCreator, default_locale: str):
+    added_sections = []
+    sections = Sections()
+    articles = Articles()
+    for index, article_data in issue_data.iterrows():
+        section_ref = article_data["section_reference"]
+        if section_ref not in added_sections:
+            section = Section()
+            section.ref = section_ref
+            add_localized_node(section.title, locale, article_data["section_title"])
+            section.seq = 0
+            add_localized_node(section.policy, locale, article_data["section_policy"])
+            add_localized_node(section.abbrev, locale, section_ref)
+            section.abstract_word_count = 250
+            sections.section.append(section)
+            added_sections.append(section_ref)
+
+        article = Article()
+        article.locale = default_locale
+        article.stage = ArticleStage.PRODUCTION
+        article.current_publication_id = article_data["id"]
+        article.status = "3"
+        article.submission_file = submission_file_creator.create_submission_file(
+            article_data["file"], article_data.get("id"), article_data["publication_date"]
+        )
+        article.publication = publication_creator.create_publication(article_data, section_ref)
+        articles.article.append(article)
+
+    issue.sections = sections
+    issue.articles = articles
 
 
 if __name__ == "__main__":
@@ -198,19 +213,8 @@ if __name__ == "__main__":
             galleys = IssueGalleys()
             issue.issue_galleys = galleys
 
-            sections = Sections()
-            articles_section = Section()
-            articles_section.ref = "ART"
-            add_localized_node(articles_section.title, locale, "Artikelen")
-            articles_section.seq = 0
-            add_localized_node(articles_section.policy, locale, "Standaard")
-            add_localized_node(articles_section.abbrev, locale, "ART")
-            articles_section.abstract_word_count = 250
-            sections.section.append(articles_section)
-            issue.sections = sections
+            add_articles(issue, publication_data, publication_creator, submission_file_creator, locale)
 
-            issue.articles = create_articles(publication_data, articles_section.ref, publication_creator,
-                                             submission_file_creator, locale)
             issue.published = 1
             issue.current = 0
             issue.date_published = XmlDate.from_string(publication_data["publication_date"].iloc[0])
