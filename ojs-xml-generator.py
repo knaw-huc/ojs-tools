@@ -3,7 +3,6 @@ import os.path
 import traceback
 import xml.etree.ElementTree as ET
 from typing import List
-import re
 
 import numpy as np
 import pandas
