@@ -219,7 +219,6 @@ def validate_csv(csv: DataFrame):
     if len(missing_columns) > 0:
         print("missing columns: ", missing_columns)
 
-    dmy_date_pattern = r'^\d{2}-\d{2}-\d{4}$'
     iso_date_pattern = r"'^\d{4}-\d{2}-\d{2}$'"
 
     for index, row in csv.iterrows():
@@ -233,7 +232,7 @@ def validate_csv(csv: DataFrame):
                     if value is np.nan:
                         print(f"Row with index {index} has empty value for non-empty column {column_name}.")
                     elif column_type == date:
-                        if not (isinstance(value, str) or re.match(dmy_date_pattern, value) or not re.match(iso_date_pattern, value)):
+                        if not (isinstance(value, str) or not re.match(iso_date_pattern, value)):
                             print(f"'{value}' is not a valid date string for {column_name} for row with index {index}")
                     elif not isinstance(value, column_type):
                         print(f"Expected {column_type} for column {column_name} but found {type(value)} for row with "
