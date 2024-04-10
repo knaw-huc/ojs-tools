@@ -126,14 +126,14 @@ def split_author_names(name_string: str):
 months = {"mrt": 3, "jun": 6, "sep": 9, "dec": 12}
 
 
-def process_publication_date(date_string:str):
+def process_publication_date(date_string: str):
     global months
     date_split = date_string.split("-")
     month = months[date_split[1]]
     year_two_digit = int(date_split[2])
     year = year_two_digit + 2000 if year_two_digit < 88 else year_two_digit + 1900
 
-    return str(date(year, month, int(date_split[0])))
+    return date(year, month, int(date_split[0])).strftime("%Y-%m-%d")
 
 
 if __name__ == '__main__':
