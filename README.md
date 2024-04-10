@@ -25,6 +25,7 @@ python tvho_csv_processor.py --input_csv /path/to/input.csv --output_csv /path/t
 ```
 * `files_path`, a folder that should contain all the files mentioned in the `csv_file`-file.
 
+Opening the output of this processor might alter its contents, causing errors when using the 'OJS XML Generator'.
 
 ## OJS XML Generator
 
@@ -33,13 +34,14 @@ The XML-files are self-contained.
 
 ### Typical call
 ```commandline
-python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder 
+python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "name of journal"
 ```
 * `csv_file` should be in the structure created by `ojs-csv-processor`.
 * `output_path` should point an existing folder.
+* `journal_name` is included in the XML as '<title>' element and should be the full title of the journal.
 This is where the XMLs are stored.
 Optional parameters
-* `author_group` the user the group the authors of the articles are part of.
+* `author_group` describes the group within the system the authors of the articles are part of.
 This property has a default value `Author`.
 This default value is the English variant each language has its own.
 The Dutch variant is `Auteur`.
@@ -48,3 +50,9 @@ The default value is `Article Text`, the English variant.
 The Dutch variant is `Artikeltekst`.
 * `locale` the locale used when importing, default value is 'en'.
 Make sure the `locale`, `author_group` and `submission_file_genre` are the same language.
+
+A call for a Dutch-language journal would then look like this:
+```commandline
+python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "name of journal" --author_group Auteur --submission_file_genre Artikeltekst --locale nl
+```
+
