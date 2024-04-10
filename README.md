@@ -14,12 +14,27 @@ conda env create -f environment.yaml
 conda activate ojs-tools
 ```
 
-## TVHO CSV processor
+## Pipeline
+```
+┌───────────┐    ┌─────────────┐    ┌────────────────┐    ┌────────────────────┐    ┌────────────────┐
+│source data├───►│csv processor├───►│intermediate.csv├───►│ojs_xml_processor.py├───►│ojs native xml's│
+└───────────┘    └─────────────┘    └────────────────┘    └────────────────────┘    └────────────────┘
+```
+* The `source data` can be in every format.
+* The `CSV processor` should convert the data to the `intermediate.csv`-format.
+* The `ojs_xml_processor.py` will process the intermediate-format to several `ojs native xml's`.
+An xml-file is created for each issue described in the `intermediate.csv`.
+
+## CSV processors
+For each archive a custom CSV processor should be created. 
+This processor should be found valid by `output_csv_validator.py`.
+
+### `tvho_csv_processor.py`
 
 Is a custom csv processor for the tvho project.
 It will create input for `ojs-xml-generator`.
 
-### Typical calls
+#### Typical call
 ```commandline
 python tvho_csv_processor.py --input_csv /path/to/input.csv --output_csv /path/to/output.csv --files_path /path/to/documents
 ```
@@ -27,7 +42,17 @@ python tvho_csv_processor.py --input_csv /path/to/input.csv --output_csv /path/t
 
 Opening the output of this processor might alter its contents, causing errors when using the 'OJS XML Generator'.
 
-## OJS XML Generator
+## `output_csv_validator.py`
+Makes sure the output from CSV processors complies to all the requirements of the OJS XML Generator.
+It contains a method `validate_csv` that can be used in your CSV processor.
+
+### Typical call
+```commandline
+python output_csv_validator.py --csv /path/to/data.csv
+```
+
+
+## `ojs-xml-generator.py` 
 
 Creates XML-files for the OJS `NativeImportExportPlugin`.
 The XML-files are self-contained.
