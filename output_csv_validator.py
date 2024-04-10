@@ -201,7 +201,7 @@ columns = [
         "type": str
     },
     {
-        "name": "author_family_name_0",
+        "name": "author_family_name_9",
         "required": False,
         "nullable": True,
         "type": str
