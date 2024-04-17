@@ -81,3 +81,16 @@ A call for a Dutch-language journal would then look like this:
 python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "name of journal" --author_group Auteur --submission_file_genre Artikeltekst --locale nl
 ```
 
+
+## `ojs_import.sh`
+Uploads the xml's to a journal. 
+Place the script in the root-folder of your OJS installation.
+
+### Typical call
+```commandline
+./ojs_import.sh /path/to/folder/of/xmls path_of_journal
+```
+* `/path/to/folder/of/xmls` contains the OJS native xml files.
+* `path_of_journal` the path property of the magazine configured in OJS.
+
+
