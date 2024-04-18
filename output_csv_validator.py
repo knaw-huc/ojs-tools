@@ -87,6 +87,12 @@ columns = [
         "type": str
     },
     {
+        "name": "doi",
+        "required": False,
+        "nullable": True,
+        "type": str
+    }
+    {
         "name": "author_given_name_0",
         "required": True,
         "nullable": False,

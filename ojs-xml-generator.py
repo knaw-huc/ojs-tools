@@ -94,6 +94,12 @@ class PublicationCreator:
         publication_id.content.append(article_data["id"])
         publication_id.type_value = "internal"
         publication.id.append(publication_id)
+        if "doi" in article_data.keys():
+            doi_id = Id()
+            doi_id.content.append(article_data["doi"])
+            doi_id.type_value = "doi"
+            publication.id.append(doi_id)
+
         publication.section_ref = section_ref
         publication.status = 3
         publication.date_published = XmlDate.from_string(article_data["publication_date"])
