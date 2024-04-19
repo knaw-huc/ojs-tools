@@ -2,7 +2,7 @@ import argparse
 import datetime
 import os
 from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import Element
+from xml.etree.ElementTree import Element, ElementTree
 
 import numpy as np
 from pandas import DataFrame
@@ -10,12 +10,14 @@ from pandas import DataFrame
 from output_csv_validator import validate_csv
 
 
-def add_authors(authors: list[Element], row: dict):
+def add_authors(metadata: ElementTree, row: dict):
+    authors = metadata.findall(".//contrib[@contrib-type='author']")
     author_count = 0
 
     for author in authors:
         given_name_field = f"author_given_name_{author_count}"
         family_name_field = f"author_family_name_{author_count}"
+        affiliation_field = f"author_affiliation_{author_count}"
 
         author_names = author.find(".//name")
         if author_names is not None and len(author_names) > 0:
@@ -25,6 +27,16 @@ def add_authors(authors: list[Element], row: dict):
 
                 if name.tag == "surname":
                     row[family_name_field] = name.text
+        person_affiliation = author.find(".//xref[@ref-type='aff']")
+        if person_affiliation is not None:
+            affiliation_id = person_affiliation.attrib["rid"]
+            affiliation = metadata.find(f".//aff[@id='{affiliation_id}']")
+
+            division = affiliation.find(".//institution[@content-type='org-division']")
+            org_name = affiliation.find(".//institution[@content-type='org-name']")
+            if division is not None and org_name is not None:
+                affiliation_data = f"{division.text}, {org_name.text}"
+                row[affiliation_field] = affiliation_data
 
         author_count += 1
 
@@ -66,8 +78,7 @@ def process_file(metadata_file: str, metadata_file_parent: str, document_parent:
     abstract = metadata.find(".//abstract")
     add_abstract(abstract, row)
 
-    authors = metadata.findall(".//contrib[@contrib-type='author']")
-    add_authors(authors, row)
+    add_authors(metadata, row)
 
 
 def add_abstract(abstract: Element, row: dict):

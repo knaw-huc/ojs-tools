@@ -67,9 +67,12 @@ class AuthorAdder:
                 break
 
             family_name = article_data[key.replace("given_name", "family_name")]
+            affiliation_key = key.replace("given_name", "affiliation")
             author = Author()
             add_localized_node(author.givenname, locale, given_name)
             add_localized_node(author.familyname, locale, family_name)
+            if affiliation_key in article_data and article_data[affiliation_key] is not np.nan:
+                add_localized_node(author.affiliation, locale, article_data[affiliation_key])
             author.country = ""  # needed for a valid xml
             author.email = ""  # needed for a valid xml
             author.seq = seq
