@@ -5,7 +5,7 @@ import os.path
 
 import numpy as np
 import pandas
-from pandas import DataFrame
+from pandas import DataFrame, Series
 
 columns = [
     {
@@ -91,7 +91,7 @@ columns = [
         "required": False,
         "nullable": True,
         "type": str
-    }
+    },
     {
         "name": "author_given_name_0",
         "required": True,
@@ -215,6 +215,16 @@ columns = [
 ]
 
 
+def validate_writers(index:int , row: Series):
+    for seq, given_name_key in enumerate(filter(lambda key: key.startswith("author_given_name"), row.keys())):
+        family_name_key = given_name_key.replace("given_name", "family_name")
+
+        if row[given_name_key] is np.nan and row[family_name_key] is not np.nan:
+            print(f"Row with index {index} has empty value for column {given_name_key} and non empty value for column {family_name_key}. Writers should be identified by at least a given name.")
+
+    pass
+
+
 def validate_csv(csv: DataFrame):
     expected_columns = list(map(lambda column: column["name"], filter(lambda column: column["required"], columns)))
 
@@ -243,6 +253,8 @@ def validate_csv(csv: DataFrame):
                     elif not isinstance(value, column_type):
                         print(f"Expected {column_type} for column {column_name} but found {type(value)} for row with "
                               f"index {index}")
+
+        validate_writers(index, row)
 
     files = csv["file"]
     for file in files:
