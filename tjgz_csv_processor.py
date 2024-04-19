@@ -49,7 +49,6 @@ def process_file(metadata_file: str, metadata_file_parent: str, document_parent:
 
     row["title"] = metadata.find(".//title-group/article-title").text
     row["file"] = os.path.join(document_parent, metadata_file.replace("_nlm.xml.Meta", ".pdf"))
-    # row["year"] = int(metadata_file.split("_")[1])
     year_element = metadata.find(".//pub-date[@publication-format='print']/year")
     month_element = metadata.find(".//pub-date[@publication-format='print']/month")
 
