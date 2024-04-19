@@ -14,7 +14,7 @@ from xsdata.models.datatype import XmlDate
 
 from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article, ArticleStage, SubmissionFile, \
     SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id, LocalizedNode, \
-    IssueGalleys, Title
+    IssueGalleys, Title, IdAdvice
 
 
 class SubmissionFileCreator:
@@ -99,6 +99,7 @@ class PublicationCreator:
         publication.id.append(publication_id)
         if "doi" in article_data.keys():
             doi_id = Id()
+            doi_id.advice = IdAdvice.UPDATE
             doi_id.content.append(article_data["doi"])
             doi_id.type_value = "doi"
             publication.id.append(doi_id)
