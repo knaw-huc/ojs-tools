@@ -49,6 +49,7 @@ def process_file(metadata_file: str, metadata_file_parent: str, document_parent:
 
     row["title"] = metadata.find(".//title-group/article-title").text
     row["file"] = os.path.join(document_parent, metadata_file.replace("_nlm.xml.Meta", ".pdf"))
+    row["doi"] = metadata.find(".//article-id[@pub-id-type='doi']").text
     year_element = metadata.find(".//pub-date[@publication-format='print']/year")
     month_element = metadata.find(".//pub-date[@publication-format='print']/month")
 
@@ -116,6 +117,7 @@ if __name__ == "__main__":
     data.insert(len(data.columns), "section_policy", np.nan)
     data.insert(len(data.columns), "section_reference", np.nan)
     data.insert(len(data.columns), "from_page", np.nan)
+    data.insert(len(data.columns), "doi", np.nan)
     for root, dirs, files in os.walk(xml_path):
         print(root)
         for file in files:
