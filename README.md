@@ -51,6 +51,25 @@ It contains a method `validate_csv` that can be used in your CSV processor.
 python output_csv_validator.py --csv /path/to/data.csv
 ```
 
+### Explanation of intermediate CSV fields
+| Field  | Contents  | Required?  |
+|---|---|---|
+| id  | Just a numerical ID  | Yes  |
+| title  | The title of the article  | Yes  |
+| publication | The title of the issue | Yes |
+| abstract  | The abstract of the article  | Yes  |
+| file  |   | Yes  |
+| publication_date  |   | Yes  |
+| volume  |   | Yes  |
+| year  |   | Yes  |
+| issue  |   | Yes  |
+| page_number  |   | Yes  |
+| section_title  |   | Yes  |
+| section_policy  |   | Yes  |
+| section_reference  |   | Yes  |
+| doi  |   | Yes  |
+| author_given_name_x  |   | Yes  |
+| author_family_name_x |   | Yes  |
 
 ## `ojs-xml-generator.py` 
 
