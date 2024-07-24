@@ -51,6 +51,25 @@ It contains a method `validate_csv` that can be used in your CSV processor.
 python output_csv_validator.py --csv /path/to/data.csv
 ```
 
+### Explanation of intermediate CSV fields
+| Field  | Contents  | Required?  |
+|---|---|---|
+| id  | A numberical ID, from 1 to X  | Yes  |
+| title  | The title of the article  | Yes  |
+| publication | The title of the issue, if it has one (e.g. themed issues) | Yes |
+| abstract  | The abstract of the article  | Yes  |
+| file  | A full path to the file corresponding with the article text  | Yes  |
+| publication_date  | the date of publication, structured as yyyy-mm-dd | Yes  |
+| volume  | the volume number | Yes  |
+| year  | year of the issue  | Yes  |
+| issue  | the issue number, as a string  | Yes  |
+| page_number  |  the page numbers | Yes  |
+| section_title  | the title of the section  | Yes  |
+| section_policy  | the section policy (won't be shown)  | Yes  |
+| section_reference  |  the short code for the section (won't be shown, but should be the same for every instance of section title x) | Yes  |
+| doi  |  the full DOI | no  |
+| author_given_name_x  | first name of the author. Make sure they're empty if there is no author x.  | Yes  |
+| author_family_name_x | last name of the author. Make sure they're empty if there is no author x. | Yes  |
 
 ## `ojs-xml-generator.py` 
 
