@@ -58,18 +58,18 @@ python output_csv_validator.py --csv /path/to/data.csv
 | title  | The title of the article  | Yes  |
 | publication | The title of the issue | Yes |
 | abstract  | The abstract of the article  | Yes  |
-| file  |   | Yes  |
-| publication_date  |   | Yes  |
-| volume  |   | Yes  |
-| year  |   | Yes  |
-| issue  |   | Yes  |
-| page_number  |   | Yes  |
-| section_title  |   | Yes  |
-| section_policy  |   | Yes  |
-| section_reference  |   | Yes  |
-| doi  |   | Yes  |
-| author_given_name_x  |   | Yes  |
-| author_family_name_x |   | Yes  |
+| file  | A full path to the file  | Yes  |
+| publication_date  | the date of publication, structured as yyyy-mm-dd | Yes  |
+| volume  | the volume number | Yes  |
+| year  | year of the issue  | Yes  |
+| issue  | the issue number, as a string  | Yes  |
+| page_number  |  the page numbers | Yes  |
+| section_title  | the title of the section  | Yes  |
+| section_policy  | the section policy  | Yes  |
+| section_reference  |  the short code for the section | Yes  |
+| doi  |  the full DOI | no  |
+| author_given_name_x  | first name of the author  | Yes  |
+| author_family_name_x | last name of the author | Yes  |
 
 ## `ojs-xml-generator.py` 
 
