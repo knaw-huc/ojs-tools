@@ -232,7 +232,7 @@ if __name__ == "__main__":
             etree = ET.fromstring(xml_string)
             xml_schema.validate(etree)
             if xml_schema.is_valid(etree):
-                with open(f"{args.output_path}/{file_name}", "w") as output:
+                with open(f"{args.output_path}/{file_name}", "w", encoding='utf-8') as output:
                     output.write(xml_string)
                     output.flush()
 
