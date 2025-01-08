@@ -68,8 +68,8 @@ python output_csv_validator.py --csv /path/to/data.csv
 | section_policy  | the section policy (won't be shown)  | Yes  |
 | section_reference  |  the short code for the section (won't be shown, but should be the same for every instance of section title x) | Yes  |
 | doi  |  the full DOI | no  |
-| author_given_name_x  | first name of the author. Make sure they're empty if there is no author x.  | Yes  |
-| author_family_name_x | last name of the author. Make sure they're empty if there is no author x. | Yes  |
+| author_given_name_x  | first name of the author. Make sure they're empty if there is no author x. Starts at 0. | Yes  |
+| author_family_name_x | last name of the author. Make sure they're empty if there is no author x. Starts at 0. | Yes  |
 
 ## `ojs-xml-generator.py` 
 
