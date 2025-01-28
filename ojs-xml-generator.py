@@ -195,10 +195,11 @@ def add_localized_node(localized_nodes: List[LocalizedNode], locale: str, conten
 
 
 def add_articles(issue: Issue, issue_data: DataFrame, publication_creator: PublicationCreator,
-                 submission_file_creator: SubmissionFileCreator, default_locale: str):
+                 submission_file_creator: SubmissionFileCreator, default_locale: str, file_input: str = 'file_path'):
     added_sections = []
     sections = Sections()
     articles = Articles()
+
     for index, article_data in issue_data.iterrows():
         section_ref = article_data["section_reference"]
         if section_ref not in added_sections:
@@ -212,14 +213,29 @@ def add_articles(issue: Issue, issue_data: DataFrame, publication_creator: Publi
             sections.section.append(section)
             added_sections.append(section_ref)
 
+        # Create SubmissionFile based on file_input
+        if file_input == 'file_path':
+            submission_file = submission_file_creator.create_submission_file(
+                file_id=article_data["id"],
+                publication_date=article_data["publication_date"],
+                file_path=article_data["file"]
+            )
+        elif file_input == 'base64':
+            submission_file = submission_file_creator.create_submission_file(
+                file_id=article_data["id"],
+                publication_date=article_data["publication_date"],
+                base64_file=article_data["file"],  # 'file' column contains Base64 content
+                file_extension = '.pdf'
+            )
+        else:
+            raise ValueError(f"Invalid file_input: {file_input}. Must be 'file_path' or 'base64'.")
+
         article = Article()
         article.locale = default_locale
         article.stage = ArticleStage.PRODUCTION
         article.current_publication_id = article_data["id"]
         article.status = "3"
-        article.submission_file = submission_file_creator.create_submission_file(
-            article_data["file"], article_data.get("id"), article_data["publication_date"]
-        )
+        article.submission_file = submission_file
         article.publication = publication_creator.create_publication(article_data, section_ref)
         articles.article.append(article)
 
@@ -235,6 +251,7 @@ if __name__ == "__main__":
     parser.add_argument("--author_group", type=str, default="Author")
     parser.add_argument("--submission_file_genre", type=str, default="Article Text")
     parser.add_argument("--locale", type=str, default="en")
+    parser.add_argument("--file_input", type=str, default='file_path')
 
     args = parser.parse_args()
 
@@ -269,7 +286,8 @@ if __name__ == "__main__":
             galleys = IssueGalleys()
             issue.issue_galleys = galleys
 
-            add_articles(issue, publication_data, publication_creator, submission_file_creator, locale)
+            add_articles(issue, publication_data, publication_creator, submission_file_creator, locale, file_input=args.file_input)
+
 
             issue.published = 1
             issue.current = 0
