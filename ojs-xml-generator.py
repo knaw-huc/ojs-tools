@@ -4,6 +4,8 @@ import traceback
 import xml.etree.ElementTree as ET
 from typing import List
 
+import base64
+
 import numpy as np
 import pandas
 from pandas import DataFrame, Series, isna
@@ -22,31 +24,76 @@ class SubmissionFileCreator:
         self.default_locale = default_locale
         self.genre = genre
 
-    def create_submission_file(self, file_path: str, file_id: int,
-                               publication_date: str) -> SubmissionFile:
+    def create_submission_file(self, file_id: int, publication_date: str, file_path: str=None, 
+                                base64_file: str = None, file_extension: str = None, file_name: str = None) -> SubmissionFile:
+
+        """
+        file_id: unique file ID, required
+        publication_date: the date of publication of the file, required
+
+        either one of these two is required:
+        file_path: path to a file on disk
+        base64_file: base64-encoded content of a file
+
+        only required if using bse64_file:
+        file_name: if not provided inferred from the file path (or defaults to 'file_<file_id>' for Base64 input)
+        file extension: extension of the file
+        """
+
+        #check if either file path or base 64 file, and not both:
+        if file_path and base64_file:
+            raise ValueError(f"{file_id}: Provide either 'file_path' or 'base64_file', but not both.")
+        if not file_path and not base64_file:
+            raise ValueError(f"{file_id}: Either 'file_path' or 'base64_file' must be provided.")
+
         submission_file = SubmissionFile()
         submission_file.stage = SubmissionFileStage.PROOF
         submission_file.file_id = file_id
         submission_file.id_attribute = file_id
-        add_localized_node(submission_file.name, self.default_locale, os.path.basename(file_path))
+
+        #check what the source of the file is
+        if file_path:
+            #read from the file path
+            file_name = file_name or os.path.basename(file_path)
+            with open(file_path, mode="rb") as file:
+                file_bytes = file.read()
+                file_size = len(file_bytes)
+            # Extract file extension from file path
+            file_extension = file_extension or file_path.split(".")[-1]
+
+        elif base64_file:
+            #use base64 input
+            if not file_extension:
+                raise ValueError(f"{file_id}: file extension must be provided when using base64_file")
+
+            #estimate file size    
+            file_bytes = base64.b64decode(base64_file)
+            file_size = len(file_bytes)
+            
+            #set file name
+            file_name = file_name or f"file_{file_id}"
+
+        #add localized name
+        add_localized_node(submission_file.name, self.default_locale, file_name)
+
+        #set date and genre
         submission_file.created_at = XmlDate.from_string(publication_date)
         submission_file.genre = self.genre
 
-        with open(rf"{file_path}", mode="rb") as file:
-            file_bytes = file.read()
-            file_size = len(file_bytes)
+        #create metadata
+        file_holder = SubmissionFile.File()
+        file_holder.id = file_id
+        file_holder.filesize = file_size
+        
+        #embed file content
+        embed = Embed()
+        embed.encoding = "base64"
+        embed.content = base64_file if base64_file else base64.b64encode(file_bytes).decode("utf-8")
+        file_holder.embed = embed
+        
+        file_holder.extension = file_extension
 
-            file_holder = SubmissionFile.File()
-            file_holder.id = file_id
-            file_holder.filesize = file_size
-            embed = Embed()
-            embed.encoding = "base64"
-            embed.content = file_bytes
-            file_holder.embed = embed
-            if "." in file_path:
-                file_holder.extension = file_path.split(".")[-1]
-
-            submission_file.file = file_holder
+        submission_file.file = file_holder
 
         return submission_file
 
