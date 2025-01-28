@@ -94,6 +94,7 @@ The default value is `Article Text`, the English variant.
 The Dutch variant is `Artikeltekst`.
 * `locale` the locale used when importing, default value is 'en'.
 Make sure the `locale`, `author_group` and `submission_file_genre` are the same language.
+* `--file_input` should be set to either `file_path` which is standard, or `base64`. If the latter is chosen, the script will assume the file column contains base64 encoded PDF files.
 
 A call for a Dutch-language journal would then look like this:
 ```commandline
