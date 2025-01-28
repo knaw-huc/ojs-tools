@@ -71,7 +71,8 @@ class SubmissionFileCreator:
             file_size = len(file_bytes)
             
             #set file name
-            file_name = file_name or f"file_{file_id}"
+            #file_name or 
+            file_name = f"file_{file_id}"
 
         #add localized name
         add_localized_node(submission_file.name, self.default_locale, file_name)
@@ -165,7 +166,14 @@ class PublicationCreator:
         self.author_adder.add_authors(article_data, publication)
 
         galley = ArticleGalley()
-        galley.name = os.path.basename(article_data["file"])
+
+        if args.file_input == 'file_path':
+            galley.name = os.path.basename(article_data["file"])
+        elif args.file_input == 'base64':
+            galley.name = 'PDF'
+        else:
+            raise ValueError(f"{file_id}: Either 'file_path' or 'base64_file' must be provided.")
+
         galley.locale = self.default_locale
         galley.seq = 0
         ref = SubmissionFileRef()
@@ -225,7 +233,7 @@ def add_articles(issue: Issue, issue_data: DataFrame, publication_creator: Publi
                 file_id=article_data["id"],
                 publication_date=article_data["publication_date"],
                 base64_file=article_data["file"],  # 'file' column contains Base64 content
-                file_extension = '.pdf'
+                file_extension = 'pdf'
             )
         else:
             raise ValueError(f"Invalid file_input: {file_input}. Must be 'file_path' or 'base64'.")
@@ -260,7 +268,7 @@ if __name__ == "__main__":
     publication_creator = PublicationCreator(author_adder, locale)
     submission_file_creator = SubmissionFileCreator(args.submission_file_genre, locale)
 
-    data = pandas.read_csv(args.csv_file, delimiter=";")
+    data = pandas.read_csv(args.csv_file, delimiter=";", dtype={'issue': str})
 
     publications = data["publication"].unique()
 
