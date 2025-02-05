@@ -117,18 +117,39 @@ class AuthorAdder:
             family_name = article_data[key.replace("given_name", "family_name")]
             affiliation_key = key.replace("given_name", "affiliation")
             author = Author()
-            add_localized_node(author.givenname, locale, given_name)
-            add_localized_node(author.familyname, locale, family_name)
+            
+            # Ensure locale is used correctly
+            add_localized_node(author.givenname, self.default_locale, given_name)
+            add_localized_node(author.familyname, self.default_locale, family_name)
+
+            # Handle author affiliation
             if affiliation_key in article_data and article_data[affiliation_key] is not np.nan:
-                add_localized_node(author.affiliation, locale, article_data[affiliation_key])
-            author.country = ""  # needed for a valid xml
-            author.email = ""  # needed for a valid xml
+                add_localized_node(author.affiliation, self.default_locale, article_data[affiliation_key])
+
+            # Handle missing country
+            country_key = key.replace("given_name", "country")
+
+            if country_key in article_data and article_data[country_key] is not np.nan:
+                author.country = article_data[country_key]  # Assign directly (non-localized)
+            else:
+                author.country = ""  # Default to an empty string if missing
+
+            # Handle missing email
+            email_key = key.replace("given_name", "email")
+
+            if email_key in article_data and article_data[email_key] is not np.nan:
+                author.email = article_data[email_key]  # Assign directly (non-localized)
+            else:
+                author.email = ""  # Default to an empty string if missing
+
+
             author.seq = seq
             author.id = self.author_id
             self.author_id += 1
             author.user_group_ref = self.user_group_ref
 
             authors.author.append(author)
+
         if len(authors.author) > 0:
             publication.authors = authors
             publication.primary_contact_id = authors.author[0].id
@@ -138,6 +159,9 @@ class PublicationCreator:
     def __init__(self, author_adder: AuthorAdder, default_locale: str):
         self.default_locale = default_locale
         self.author_adder = author_adder
+
+    def keywords_to_list(article_data_keywords):
+        return article_data_keywords.split('[;sep;]')
 
     def create_publication(self, article_data: Series, section_ref: str) -> Publication:
         publication = Publication()
