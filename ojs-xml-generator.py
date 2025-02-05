@@ -134,7 +134,7 @@ class AuthorAdder:
             else:
                 author.country = ""  # Default to an empty string if missing
 
-            # Handle missing email
+            #Handle missing email
             email_key = key.replace("given_name", "email")
 
             if email_key in article_data and article_data[email_key] is not np.nan:
