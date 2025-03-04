@@ -212,6 +212,12 @@ columns = [
         "nullable": True,
         "type": str
     },
+    {
+        "name": "keywords",
+        "required": False,
+        "nullable": True,
+        "type": str
+    }
 ]
 
 

@@ -16,7 +16,7 @@ from xsdata.models.datatype import XmlDate
 
 from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article, ArticleStage, SubmissionFile, \
     SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id, LocalizedNode, \
-    IssueGalleys, Title, IdAdvice
+    IssueGalleys, Title, IdAdvice, Keywords
 
 
 class SubmissionFileCreator:
@@ -160,7 +160,7 @@ class PublicationCreator:
         self.default_locale = default_locale
         self.author_adder = author_adder
 
-    def keywords_to_list(article_data_keywords):
+    def keywords_to_list(self, article_data_keywords):
         return article_data_keywords.split('[;sep;]')
 
     def create_publication(self, article_data: Series, section_ref: str) -> Publication:
@@ -175,6 +175,13 @@ class PublicationCreator:
             doi_id.content.append(article_data["doi"])
             doi_id.type_value = "doi"
             publication.id.append(doi_id)
+
+        if "keywords" in article_data.keys():
+            keyword_list = self.keywords_to_list(article_data["keywords"])
+            keyword_node = Keywords()
+            keyword_node.keyword.extend(keyword_list)
+            keyword_node.locale = locale
+            publication.keywords.append(keyword_node)    
 
         publication.section_ref = section_ref
         publication.status = 3
