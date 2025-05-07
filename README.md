@@ -1,16 +1,16 @@
 # OJS tools
 
-This project contains multiple tools that help generate OJS native xml files.
+This project contains multiple tools that help generate OJS native XML files.
 
-## Getting started
+## Getting Started
 
-### Create the conda environment
-```commandline
+### Create the Conda environment
+```bash
 conda env create -f environment.yaml
 ```
 
-### Activate the conda environment
-```commandline
+### Activate the Conda environment
+```bash
 conda activate ojs-tools
 ```
 
@@ -20,97 +20,102 @@ conda activate ojs-tools
 │source data├───►│csv processor├───►│intermediate.csv├───►│ojs_xml_processor.py├───►│ojs native xml's│
 └───────────┘    └─────────────┘    └────────────────┘    └────────────────────┘    └────────────────┘
 ```
-* The `source data` can be in every format.
-* The `CSV processor` should convert the data to the `intermediate.csv`-format.
-* The `ojs_xml_processor.py` will process the intermediate-format to several `ojs native xml's`.
-An xml-file is created for each issue described in the `intermediate.csv`.
+* The `source data` can be in any format.
+* The `CSV processor` converts the data into the `intermediate.csv` format.
+* `ojs_xml_processor.py` converts `intermediate.csv` into multiple OJS native XML files—one per issue.
 
-## CSV processors
-For each archive a custom CSV processor should be created. 
-This processor should be found valid by `output_csv_validator.py`.
+## CSV Processors
+
+Custom CSV processors are needed for each archive. The output must be validated by `output_csv_validator.py`.
 
 ### `tvho_csv_processor.py`
 
-Is a custom csv processor for the tvho project.
-It will create input for `ojs-xml-generator`.
+This is a custom CSV processor for the TVHO project. It generates input for `ojs-xml-generator`.
 
-#### Typical call
-```commandline
+#### Typical Call
+```bash
 python tvho_csv_processor.py --input_csv /path/to/input.csv --output_csv /path/to/output.csv --files_path /path/to/documents
 ```
-* `files_path`, a folder that should contain all the files mentioned in the `csv_file`-file.
+* `--files_path` points to a directory containing the files listed in the input CSV.
 
-Opening the output of this processor might alter its contents, causing errors when using the 'OJS XML Generator'.
+> ⚠️ Opening the output in spreadsheet tools (e.g., Excel) might alter its contents and cause errors during XML generation.
 
 ## `output_csv_validator.py`
-Makes sure the output from CSV processors complies to all the requirements of the OJS XML Generator.
-It contains a method `validate_csv` that can be used in your CSV processor.
 
-### Typical call
-```commandline
+Ensures that the CSV output conforms to the required schema.
+
+### Typical Call
+```bash
 python output_csv_validator.py --csv /path/to/data.csv
 ```
 
-### Explanation of intermediate CSV fields
-| Field  | Contents  | Required?  |
-|---|---|---|
-| id  | A numberical ID, from 1 to X  | Yes  |
-| title  | The title of the article  | Yes  |
-| publication | The title of the issue, if it has one (e.g. themed issues) | Yes |
-| abstract  | The abstract of the article  | Yes  |
-| file  | A full path to the file corresponding with the article text  | Yes  |
-| publication_date  | the date of publication, structured as yyyy-mm-dd | Yes  |
-| volume  | the volume number | Yes  |
-| year  | year of the issue  | Yes  |
-| issue  | the issue number, as a string  | Yes  |
-| page_number  |  the page numbers | Yes  |
-| section_title  | the title of the section  | Yes  |
-| section_policy  | the section policy (won't be shown)  | Yes  |
-| section_reference  |  the short code for the section (won't be shown, but should be the same for every instance of section title x) | Yes  |
-| doi  |  the full DOI | no  |
-| author_given_name_x  | first name of the author. Make sure they're empty if there is no author x. Starts at 0. | Yes  |
-| author_family_name_x | last name of the author. Make sure they're empty if there is no author x. Starts at 0. | Yes  |
+### Explanation of `intermediate.csv` Fields
 
-## `ojs-xml-generator.py` 
+| Field  | Description | Required? |
+|--------|-------------|-----------|
+| id | Numeric ID | Yes |
+| title | Article title | Yes |
+| publication | Issue title (if applicable) | Yes |
+| abstract | Article abstract | Yes |
+| file | Full path or Base64-encoded content of the file | Yes |
+| publication_date | `YYYY-MM-DD` format | Yes |
+| volume | Volume number | Yes |
+| year | Year of publication | Yes |
+| issue | Issue number (as a string) | Yes |
+| page_number | Page numbers | Yes |
+| section_title | Title of the section | Yes |
+| section_policy | Section policy (internal use) | Yes |
+| section_reference | Short section code (internal use) | Yes |
+| doi | DOI (if available) | No |
+| keywords | Keywords (semicolon-separated with `[;sep;]`) | No |
+| author_given_name_x | Author first name (starts at 0) | Yes |
+| author_family_name_x | Author last name (starts at 0) | Yes |
+| author_affiliation_x | Author affiliation | No |
+| author_email_x | Author email | No |
+| author_country_x | Author country code (ISO 3166) | No |
 
-Creates XML-files for the OJS `NativeImportExportPlugin`.
-The XML-files are self-contained.
+## `ojs-xml-generator.py`
 
-### Typical call
-```commandline
-python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "name of journal"
-```
-* `csv_file` should be in the structure created by `ojs-csv-processor`.
-* `output_path` should point an existing folder.
-* `journal_name` is included in the XML as '<title>' element and should be the full title of the journal.
-This is where the XMLs are stored.
-Optional parameters
-* `author_group` describes the group within the system the authors of the articles are part of.
-This property has a default value `Author`.
-This default value is the English variant each language has its own.
-The Dutch variant is `Auteur`.
-* `submission_file_genre` is used for the `genre`-field of the `submission_file`-element
-The default value is `Article Text`, the English variant.
-The Dutch variant is `Artikeltekst`.
-* `locale` the locale used when importing, default value is 'en'.
-Make sure the `locale`, `author_group` and `submission_file_genre` are the same language.
-* `--file_input` should be set to either `file_path` which is standard, or `base64`. If the latter is chosen, the script will assume the file column contains base64 encoded PDF files.
+Generates self-contained XML files for the OJS NativeImportExportPlugin.
 
-A call for a Dutch-language journal would then look like this:
-```commandline
-python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "name of journal" --author_group Auteur --submission_file_genre Artikeltekst --locale nl
+### Typical Call
+```bash
+python ojs-xml-generator.py \
+  --csv_file /path/to/data.csv \
+  --output_path /path/to/output/folder \
+  --journal_name "Journal Full Name"
 ```
 
+### Optional Parameters
+
+| Parameter | Description | Default |
+|----------|-------------|---------|
+| `--author_group` | OJS user group (localized: `Author` / `Auteur`) | `Author` |
+| `--submission_file_genre` | File genre (localized: `Article Text` / `Artikeltekst`) | `Article Text` |
+| `--locale` | Locale used in XML (`en`, `nl`, etc.) | `en` |
+| `--file_input` | Input mode for files: `file_path` or `base64` | `file_path` |
+
+#### Example for Dutch:
+```bash
+python ojs-xml-generator.py \
+  --csv_file /path/to/data.csv \
+  --output_path /path/to/output/folder \
+  --journal_name "Journal Name" \
+  --author_group Auteur \
+  --submission_file_genre Artikeltekst \
+  --locale nl \
+  --file_input base64
+```
 
 ## `ojs_import.sh`
-Uploads the xml's to a journal. 
-Place the script in the root-folder of your OJS installation.
 
-### Typical call
-```commandline
-./ojs_import.sh /path/to/folder/of/xmls path_of_journal
+Uploads XML files to OJS.
+
+> 📍 Place the script in the root directory of your OJS installation.
+
+### Typical Call
+```bash
+./ojs_import.sh /path/to/xmls journal_path
 ```
-* `/path/to/folder/of/xmls` contains the OJS native xml files.
-* `path_of_journal` the path property of the magazine configured in OJS.
-
-
+* `/path/to/xmls` contains the generated OJS XML files.
+* `journal_path` is the OJS-configured journal path.
