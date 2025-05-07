@@ -80,10 +80,7 @@ Generates self-contained XML files for the OJS NativeImportExportPlugin.
 
 ### Typical Call
 ```bash
-python ojs-xml-generator.py \
-  --csv_file /path/to/data.csv \
-  --output_path /path/to/output/folder \
-  --journal_name "Journal Full Name"
+python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "Journal Full Name"
 ```
 
 ### Optional Parameters
@@ -97,14 +94,7 @@ python ojs-xml-generator.py \
 
 #### Example for Dutch:
 ```bash
-python ojs-xml-generator.py \
-  --csv_file /path/to/data.csv \
-  --output_path /path/to/output/folder \
-  --journal_name "Journal Name" \
-  --author_group Auteur \
-  --submission_file_genre Artikeltekst \
-  --locale nl \
-  --file_input base64
+python ojs-xml-generator.py --csv_file /path/to/data.csv --output_path /path/to/output/folder --journal_name "Journal Name"  --author_group Auteur  --submission_file_genre Artikeltekst --locale nl --file_input base64
 ```
 
 ## `ojs_import.sh`
