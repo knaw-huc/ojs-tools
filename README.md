@@ -1,6 +1,10 @@
 # OJS tools
 
-This project contains multiple tools that help generate OJS native XML files.
+This repository provides a set of tools to help generate OJS native XML files, streamlining the import of large archives into an OJS 3.4 installation.
+
+The primary script in this project, ojs-xml-generator.py, converts article metadata from a standardized CSV file into OJS 3.4-compatible native XML files—one per issue. This is particularly useful for batch imports of legacy content, back issues, or large-scale archive migrations.
+
+We created this tool to help migrate content efficiently and flexibly, and found it especially handy when working with incomplete or varying metadata. It’s designed to be adaptable, letting you include or exclude metadata fields as needed.
 
 ## Getting Started
 
