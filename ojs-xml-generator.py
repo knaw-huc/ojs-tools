@@ -187,16 +187,19 @@ class PublicationCreator:
         if "tile" in article_data.keys() and pandas.notna(article_data["tile"]):
             # Create a cover object
             cover = Cover()
-            cover.cover_image = f"{article_data['id']}_cover"
+            cover.cover_image = f"{article_data['id']}_cover.png"
             cover.cover_image_alt_text = f"cover image"
             
             # Add embedded cover
             embed = Embed()
             embed.encoding = EmbedEncoding.BASE64
             
-            # Since your data is already base64, just store it as string bytes
-            base64_cover = str(article_data["tile"]).strip()
-            embed.content = base64_cover.encode('utf-8')  # Convert string to bytes without decoding
+            #add embedded cover
+            embed = Embed()
+            embed.encoding = "base64"
+            base64_cover = article_data["tile"]
+            embed.content = base64_cover
+            cover.embed = embed
             
             cover.embed = embed
             cover.locale = self.default_locale
