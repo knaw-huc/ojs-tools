@@ -16,7 +16,7 @@ from xsdata.models.datatype import XmlDate
 
 from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article, ArticleStage, SubmissionFile, \
     SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id, LocalizedNode, \
-    IssueGalleys, Title, IdAdvice, Keywords
+    IssueGalleys, Title, IdAdvice, Keywords, Cover, Covers
 
 
 class SubmissionFileCreator:
@@ -35,7 +35,7 @@ class SubmissionFileCreator:
         file_path: path to a file on disk
         base64_file: base64-encoded content of a file
 
-        only required if using bse64_file:
+        only required if using base64_file:
         file_name: if not provided inferred from the file path (or defaults to 'file_<file_id>' for Base64 input)
         file extension: extension of the file
         """
@@ -182,6 +182,31 @@ class PublicationCreator:
             keyword_node.keyword.extend(keyword_list)
             keyword_node.locale = locale
             publication.keywords.append(keyword_node)    
+
+
+        if "tile" in article_data.keys():
+            #create a cover object
+            cover = Cover()
+            #no name for base64 object, so I will generate one
+            cover.cover_image = f"{article_data['id']}_cover"
+
+            #alt text is not available
+            cover.cover_image_alt_text = f"cover image for {article_data['title']}"
+            
+            #add embedded cover
+            embed = Embed()
+            embed.encoding = "base64"
+            base64_cover = article_data["tile"]
+            embed.content = base64_cover if base64_cover else base64.b64encode(file_bytes).decode("utf-8")
+            cover.embed = embed
+
+            cover.locale = self.default_locale
+
+            covers = Covers()
+
+            covers.cover.append(cover)
+
+            publication.covers = covers
 
         publication.section_ref = section_ref
         publication.status = 3
