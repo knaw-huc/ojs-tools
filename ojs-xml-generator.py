@@ -16,7 +16,7 @@ from xsdata.models.datatype import XmlDate
 
 from ojs import Issue, IssueIdentification, Sections, Section, Articles, Article, ArticleStage, SubmissionFile, \
     SubmissionFileStage, Embed, Publication, Author, Authors, ArticleGalley, SubmissionFileRef, Id, LocalizedNode, \
-    IssueGalleys, Title, IdAdvice, Keywords, Cover, Covers
+    IssueGalleys, Title, IdAdvice, Keywords, Cover, Covers, EmbedEncoding
 
 
 class SubmissionFileCreator:
@@ -184,28 +184,26 @@ class PublicationCreator:
             publication.keywords.append(keyword_node)    
 
 
-        if "tile" in article_data.keys():
-            #create a cover object
+        if "tile" in article_data.keys() and pandas.notna(article_data["tile"]):
+            # Create a cover object
             cover = Cover()
-            #no name for base64 object, so I will generate one
             cover.cover_image = f"{article_data['id']}_cover"
-
-            #alt text is not available
-            cover.cover_image_alt_text = f"cover image for {article_data['title']}"
+            cover.cover_image_alt_text = f"cover image"
             
-            #add embedded cover
+            # Add embedded cover
             embed = Embed()
-            embed.encoding = "base64"
-            base64_cover = article_data["tile"]
-            embed.content = base64_cover if base64_cover else base64.b64encode(file_bytes).decode("utf-8")
+            embed.encoding = EmbedEncoding.BASE64
+            
+            # Since your data is already base64, just store it as string bytes
+            base64_cover = str(article_data["tile"]).strip()
+            embed.content = base64_cover.encode('utf-8')  # Convert string to bytes without decoding
+            
             cover.embed = embed
-
             cover.locale = self.default_locale
 
             covers = Covers()
-
             covers.cover.append(cover)
-
+            
             publication.covers = covers
 
         publication.section_ref = section_ref
