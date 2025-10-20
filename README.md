@@ -79,7 +79,7 @@ python output_csv_validator.py --csv /path/to/data.csv
 | author_country_x | Author country code (ISO 3166) | No |
 
 ## Sample CSV
-Note: by default, the script expects a semicolon-seperated CSV. This can be altered on line 331, if needed.
+Note: by default, the script expects a semicolon-seperated CSV. This can be altered on line 302, if needed.
 ```
 id;title;publication;abstract;file;publication_date;volume;year;issue;page_number;section_title;section_policy;section_reference;doi;keywords;author_given_name_0;author_family_name_0;author_affiliation_0;author_email_0;author_country_0;author_given_name_1;author_family_name_1;author_affiliation_1;author_email_1;author_country_1;author_given_name_2;author_family_name_2;author_affiliation_2;author_email_2;author_country_2
 1;"Machine Learning Applications in Healthcare Diagnostics";"Journal of Medical Informatics";"This study explores the implementation of machine learning algorithms for early disease detection in clinical settings. Our analysis shows a 15% improvement in diagnostic accuracy compared to traditional methods.";"./articles/ml_healthcare_2024.pdf";"2024-03-15";45;2024;3;"123-145";"Research Articles";"peer-reviewed";"RA";"10.1016/j.jmedinf.2024.03.015";"machine learning[;sep;]healthcare[;sep;]diagnostics[;sep;]artificial intelligence";"Sarah";"Johnson";"Stanford University Medical Center";"s.johnson@stanford.edu";"US";"Michael";"Chen";"MIT Computer Science Lab";"m.chen@mit.edu";"US";"";"";"";"";""
