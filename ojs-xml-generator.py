@@ -161,7 +161,11 @@ class PublicationCreator:
         self.author_adder = author_adder
 
     def keywords_to_list(self, article_data_keywords):
+        # If the value is not a string (e.g., NaN), return an empty list
+        if not isinstance(article_data_keywords, str):
+            return []
         return article_data_keywords.split('[;sep;]')
+
 
     def create_publication(self, article_data: Series, section_ref: str) -> Publication:
         publication = Publication()
@@ -178,10 +182,12 @@ class PublicationCreator:
 
         if "keywords" in article_data.keys():
             keyword_list = self.keywords_to_list(article_data["keywords"])
-            keyword_node = Keywords()
-            keyword_node.keyword.extend(keyword_list)
-            keyword_node.locale = locale
-            publication.keywords.append(keyword_node)    
+            if keyword_list:  # only add <keywords> if there are actual keywords
+                keyword_node = Keywords()
+                keyword_node.keyword.extend(keyword_list)
+                keyword_node.locale = locale
+                publication.keywords.append(keyword_node)
+    
 
         publication.section_ref = section_ref
         publication.status = 3
